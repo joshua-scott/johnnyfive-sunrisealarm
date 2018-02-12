@@ -70,7 +70,7 @@ function soundAlarm () {
   })
 }
 
-board.on('ready', function () {
+board.on('ready', () => {
   setupHardware()
   setInterval(tick, 1000)
 })
