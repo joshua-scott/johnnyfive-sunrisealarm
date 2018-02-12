@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/joshua-scott/johnnyfive-sunrisealarm#readme",
   "dependencies": {
-    "j5-songs": "0.0.9",
     "johnny-five": "^0.13.0",
     "moment": "^2.20.1"
   }

@@ -1,13 +1,6 @@
 const five = require('johnny-five')
-const j5songs = require('j5-songs')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
-
-const songs = [
-  'beethovens-fifth', 'claxon', 'do-re-mi', 'doorbell', 'funeral-march-short', 
-  'jingle-bells-short', 'mario-fanfare', 'mario-intro', 'never-gonna-give-you-up', 
-  'pew-pew-pew', 'tetris-theme', 'starwars-theme'
-]
 
 let alarmOn = true
 let keepPlaying = true
@@ -21,11 +14,7 @@ function setupHardware () {
   piezo = new five.Piezo(5)
   
   // tap mode button to turn off currently playing alarm
-  // playing an empty song avoids having to wait for the currently playing song to finish too
-  modeButton.on('down', () => {
-    keepPlaying = false
-    piezo.play({song: '---'})
-  })
+  modeButton.on('down', () => keepPlaying = false)
   
   // hold mode button to toggle alarm on/off
   modeButton.on('hold', () => {
@@ -75,13 +64,8 @@ function tick () {
 }
 
 function soundAlarm () {
-  const randomSong = songs[Math.floor(Math.random() * songs.length)]
-  console.log(`Time to wake up to ${randomSong}!`)
-
-  // Keep playing a random song until !keepPlaying (i.e. until user hits the mode button)
-  piezo.play(j5songs.load(randomSong), () => {
-    if (keepPlaying) soundAlarm()
-    else console.log('Alarm stopped by user pressing mode button')
+  piezo.play('C -', () => {
+    keepPlaying ? soundAlarm() : console.log('Alarm stopped')
   })
 }
 
