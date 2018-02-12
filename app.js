@@ -4,7 +4,7 @@ const board = new five.Board({ port: 'COM3' })
 
 let alarmOn = true
 let keepPlaying = true
-let alarmTime = moment().add(1, 'hour') // alarm defaults to 1 hour from now
+let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 
 function setupHardware () {
   led = new five.Led(13)
