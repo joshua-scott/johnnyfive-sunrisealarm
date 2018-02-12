@@ -90,4 +90,6 @@ todo:
 - Allow user to change alarm hour too (perhaps by tapping mode button: if there's not an alarm playing,
   we know the user wants to change the minutes/hour). Possibly flash the currentlyEditing units until a timeout?
 - Implement SAD abilities: an led/matrix should get brighter as the alarm approaches
+- When alarm is sounding, consider: tap to snooze, hold to dismiss? Or use the arrow buttons? Could use the
+  display as a key, if there's room
 */
