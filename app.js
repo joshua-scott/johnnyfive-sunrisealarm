@@ -60,6 +60,7 @@ function tick () {
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
     soundAlarm()
+    alarmTime.add(1, 'day')
   }
 }
 
