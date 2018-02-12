@@ -1,0 +1,25 @@
+{
+  "name": "johnnyfive-sunrisealarm",
+  "version": "1.0.0",
+  "description": "An alarm clock with sunrise simulation features to prevent Seasonal Affective Disorder. Powered by an Arduino UNO and the Johnny-Five JavaScript Robotics & IOT Platform.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshua-scott/johnnyfive-sunrisealarm.git"
+  },
+  "author": "Joshua Scott (jscott313@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joshua-scott/johnnyfive-sunrisealarm/issues"
+  },
+  "homepage": "https://github.com/joshua-scott/johnnyfive-sunrisealarm#readme",
+  "dependencies": {
+    "j5-songs": "0.0.9",
+    "johnny-five": "^0.13.0",
+    "moment": "^2.20.1"
+  }
+}
