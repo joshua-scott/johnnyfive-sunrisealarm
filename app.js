@@ -52,7 +52,7 @@ function setAlarm (direction, amount) {
   const now = moment()
   if (alarmTime.isBefore(now)) {
     alarmTime.add(1, 'day')
-  } else if (alarmTime.diff(now, 'minutes') >= 1440) {
+  } else if (alarmTime.isAfter(now.add(1, 'day'))) {
     alarmTime.subtract(1, 'day')
   }
 
