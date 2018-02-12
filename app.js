@@ -8,10 +8,10 @@ let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1
 
 function setupHardware () {
   led = new five.Led(13)
-  upButton = new five.Button(3)
-  downButton = new five.Button(2)
-  modeButton = new five.Button({ pin: 4, holdtime: 1000 })
   piezo = new five.Piezo(5)
+  upButton = new five.Button({ pin: 3, holdtime: 250 })
+  downButton = new five.Button({ pin: 2, holdtime: 250 })
+  modeButton = new five.Button({ pin: 4, holdtime: 500 })
   
   // tap mode button to turn off currently playing alarm
   modeButton.on('down', () => keepPlaying = false)
@@ -22,6 +22,8 @@ function setupHardware () {
     console.log(`Alarm is now ${alarmOn ? 'on' : 'off'}`)
   })
 
+  // tapping up or down button changes alarm time by 1 minute
+  // holding changes alarm time by 10 mins (per 250ms)
   downButton.on('down', () => setAlarm('down', 1))
   downButton.on('hold', () => setAlarm('down', 10))
   upButton.on('down', () => setAlarm('up', 1))
