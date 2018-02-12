@@ -73,4 +73,11 @@ function soundAlarm () {
 board.on('ready', () => {
   setupHardware()
   setInterval(tick, 1000)
+
+  board.repl.inject({
+    // Easily set an alarm from terminal (defaults to five seconds from now, or pass an argument)
+    a (when = moment().add(5, 'seconds')) {
+      alarmTime = when
+    }
+  })
 })
