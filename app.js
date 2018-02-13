@@ -7,8 +7,9 @@ let keepPlaying = true
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 
 function setupHardware () {
-  led = new five.Led(13)
   piezo = new five.Piezo(5)
+  sunriseLed = new five.Led(6)
+  infoLed = new five.Led(7)
   upButton = new five.Button({ pin: 3, holdtime: 250 })
   downButton = new five.Button({ pin: 2, holdtime: 250 })
   modeButton = new five.Button({ pin: 4, holdtime: 500 })
@@ -57,7 +58,7 @@ function showStatus () {
 function tick () {
   showStatus()
 
-  alarmOn ? led.on() : led.off()
+  alarmOn ? infoLed.on() : infoLed.off()
   
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
