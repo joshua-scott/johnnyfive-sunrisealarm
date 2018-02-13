@@ -59,6 +59,16 @@ function tick () {
   showStatus()
 
   alarmOn ? infoLed.on() : infoLed.off()
+
+  const minsLeft = alarmTime.diff(moment(), 'minutes')
+  if (alarmOn && minsLeft <= 30) {
+    const sunlight = ((30 - minsLeft) / 30) * 255
+    sunriseLed.brightness(sunlight)
+    console.log(`The brightness is now ${sunlight}/255`)
+  } else {
+    sunriseLed.off()
+  }
+
   
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
