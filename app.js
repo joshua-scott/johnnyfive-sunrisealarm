@@ -60,15 +60,15 @@ function tick () {
 
   alarmOn ? infoLed.on() : infoLed.off()
 
+  /* Gradually get brighter from 30 mins before alarm.
+     Could have used fadeIn() here, but it's messy if user sets
+     the alarm for <30 mins from now. This way is more robust. */
   const minsLeft = alarmTime.diff(moment(), 'minutes')
   if (alarmOn && minsLeft <= 30) {
-    const sunlight = ((30 - minsLeft) / 30) * 255
+    const sunlight = Math.round(((30 - minsLeft) / 30) * 255)
     sunriseLed.brightness(sunlight)
-    console.log(`The brightness is now ${sunlight}/255`)
-  } else {
-    sunriseLed.off()
+    console.log(`Sunlight: ${sunlight}/255`)
   }
-
   
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
@@ -79,7 +79,16 @@ function tick () {
 
 function soundAlarm () {
   piezo.play('C -', () => {
-    keepPlaying ? soundAlarm() : console.log('Alarm stopped')
+    if (keepPlaying) {
+      console.log('BEEP')
+      soundAlarm()
+    } else {
+      console.log('Alarm stopped')
+      // Keep it sunny for 10 mins, then fade it out over 30 mins
+      setTimeout(() => {
+        sunriseLed.fadeOut(1000/*ms*/ * 60/*secs*/ /* 30/*mins*/)
+      }, 1000/*ms*/ * 60/*secs*/ /* 10/*mins*/)
+    }
   })
 }
 
