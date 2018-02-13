@@ -9,10 +9,17 @@ let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1
 function setupHardware () {
   piezo = new five.Piezo(5)
   sunriseLed = new five.Led(6)
-  infoLed = new five.Led(7)
+  infoLed = new five.Led(13)
   upButton = new five.Button({ pin: 3, holdtime: 250 })
   downButton = new five.Button({ pin: 2, holdtime: 250 })
   modeButton = new five.Button({ pin: 4, holdtime: 500 })
+  lcd = new five.LCD({
+    pins: [7, 8, 9, 10, 11, 12],
+    rows: 2,
+    cols: 20
+  });
+  lcd.useChar("clock");
+  lcd.useChar("bell");
   
   // tap mode button to turn off currently playing alarm
   modeButton.on('down', () => keepPlaying = false)
@@ -95,6 +102,10 @@ function soundAlarm () {
 board.on('ready', () => {
   setupHardware()
   setInterval(tick, 1000)
+
+  // example lcd usage:
+  lcd.clear().print(':clock: 12:00  13:00 :bell:');
+  lcd.cursor(1, 0).print('   in an hour   ');
 
   board.repl.inject({
     // Easily set an alarm from terminal (defaults to five seconds from now, or pass an argument)
