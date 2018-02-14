@@ -65,8 +65,8 @@ function showStatus () {
   if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
   const now = moment()
-  let alarmMessage = 'No alarm'
 
+  let alarmMessage = 'No alarm'
   if (alarmOn) {
     const hoursLeft = alarmTime.diff(now, 'hours')
     const minsLeft = alarmTime.diff(now, 'minutes')
@@ -80,9 +80,12 @@ function showStatus () {
     }
   }
 
-  lcd.home().print(`:clock: ${now.format('HH:mm:ss')}`)
-  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm')} ${alarmMessage.padStart(8)}`)
-  console.log(`Now: ${now.format('HH:mm:ss')}\tAlarm: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
+  const dateInfo = now.format(now.seconds() % 2 ? 'ddd' : 'D/M')
+  const topRow = `:clock: ${now.format('HH:mm:ss')} ${dateInfo.padStart(5)}`
+  const bottomRow = `:bell: ${alarmTime.format('HH:mm')} ${alarmMessage.padStart(8)}`
+
+  lcd.home().print(topRow).cursor(1, 0).print(bottomRow)
+  console.log(topRow, '|', bottomRow)
 }
 
 function tick () {
@@ -94,7 +97,7 @@ function tick () {
      Could have used fadeIn() here, but it's messy if user sets
      the alarm for <30 mins from now. This way is more robust. */
   const minsLeft = alarmTime.diff(moment(), 'minutes')
-  if (alarmOn && minsLeft <= 30) {
+  if (alarmOn && minsLeft < 30) {
     const sunlight = Math.round(((30 - minsLeft) / 30) * 255)
     sunriseLed.brightness(sunlight)
     console.log(`Sunlight: ${sunlight}/255`)
