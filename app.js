@@ -83,6 +83,8 @@ function updateDisplay () {
 }
 
 function checkAlarmDate () {
+  if (!alarmDismissed) return // don't change the alarm if it's currently ringing
+
   const now = moment()
   if (nextAlarm.isBefore(now)) {
     nextAlarm.add(1, 'day')
