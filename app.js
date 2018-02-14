@@ -19,7 +19,7 @@ function setupHardware () {
   lcd = new five.LCD({
     pins: [8, 9, 10, 11, 12, 13],
     rows: 2,
-    cols: 20
+    cols: 16
   })
   lcd.useChar('clock')
   lcd.useChar('bell')
@@ -64,8 +64,16 @@ function setAlarm (direction, amount) {
 function showStatus () {
   if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
+  let alarmMessage = 'No alarm'
+
+  if (alarmOn) {
+    const minsLeft = alarmTime.diff(moment(), 'minutes')
+    alarmMessage = (minsLeft < 100) ? `${minsLeft} mins` : `${Math.round(minsLeft / 60)} hours`
+    alarmMessage = (minsLeft < 2) ? `${alarmTime.diff(moment(), 'seconds')} secs` : alarmMessage
+  }
+
   lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`)
-  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm:ss')}`)
+  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm')} ${alarmMessage}`)
   console.log(`Current time: ${moment().format('HH:mm:ss')}\tAlarm time: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
 }
 
@@ -95,8 +103,6 @@ function tick () {
 function soundAlarm () {
   piezo.play('C -', () => {
     if (keepPlaying) {
-      console.log('BEEP')
-      showStatus()
       soundAlarm()
     } else {
       console.log('Alarm stopped')
