@@ -5,7 +5,7 @@ const board = new five.Board({ port: 'COM3' })
 let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
 let alarmOn = true
 let alarmDismissed = true
-let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
+let nextAlarm = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 let previousAlarm = moment(0) // used to keep it sunny after alarm
 let pauseDisplay = false
 
@@ -47,17 +47,17 @@ function setupHardware () {
 function setAlarm (button, amount) {
   if (!alarmDismissed) { // snooze currently playing alarm
     const snoozeTime = button === 'up' ? 1 : 10
-    alarmTime.add(snoozeTime, 'minutes')
+    nextAlarm.add(snoozeTime, 'minutes')
   } else { // adjust future alarm
-    alarmTime.add(button === 'up' ? amount : -amount, 'minutes')
+    nextAlarm.add(button === 'up' ? amount : -amount, 'minutes')
   }
 
   // adjust date of alarm if needed
   const now = moment()
-  if (alarmTime.isBefore(now)) {
-    alarmTime.add(1, 'day')
-  } else if (alarmTime.isAfter(now.add(1, 'day'))) {
-    alarmTime.subtract(1, 'day')
+  if (nextAlarm.isBefore(now)) {
+    nextAlarm.add(1, 'day')
+  } else if (nextAlarm.isAfter(now.add(1, 'day'))) {
+    nextAlarm.subtract(1, 'day')
   }
 
   updateDisplay()
@@ -70,9 +70,9 @@ function updateDisplay () {
 
   let alarmMessage = 'No alarm'
   if (alarmOn) {
-    const hoursLeft = alarmTime.diff(now, 'hours')
-    const minsLeft = alarmTime.diff(now, 'minutes')
-    const secsLeft = alarmTime.diff(now, 'seconds')
+    const hoursLeft = nextAlarm.diff(now, 'hours')
+    const minsLeft = nextAlarm.diff(now, 'minutes')
+    const secsLeft = nextAlarm.diff(now, 'seconds')
     if (hoursLeft > 0) {
       alarmMessage = `${hoursLeft}h ${minsLeft % 60}m`
     } else if (minsLeft > 0) {
@@ -84,7 +84,7 @@ function updateDisplay () {
 
   const dateInfo = now.format(now.seconds() % 2 ? 'ddd' : 'D/M')
   const topRow = `:clock: ${now.format('HH:mm:ss')} ${dateInfo.padStart(5)}`
-  const bottomRow = `:bell: ${alarmTime.format('HH:mm')} ${alarmMessage.padStart(8)}`
+  const bottomRow = `:bell: ${nextAlarm.format('HH:mm')} ${alarmMessage.padStart(8)}`
 
   lcd.home().print(topRow).cursor(1, 0).print(bottomRow)
   console.log(topRow, '|', bottomRow)
@@ -96,7 +96,7 @@ function tick () {
   alarmOn ? infoLed.on() : infoLed.off()
 
   // Gradually get brighter/dimmer 30 mins before/after alarm
-  const minsLeft = alarmTime.diff(moment(), 'minutes')
+  const minsLeft = nextAlarm.diff(moment(), 'minutes')
   const minsSince = moment().diff(previousAlarm, 'minutes')
   if (minsSince < 30 || (alarmOn && minsLeft < 30)) {
     const sunlight = !alarmDismissed ? 255 : Math.round(((30 - Math.min(minsLeft, minsSince)) / 30) * 255)
@@ -104,7 +104,7 @@ function tick () {
     console.log(`Sunlight: ${sunlight}/255`)
   }
 
-  if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
+  if (alarmOn && moment().isSame(nextAlarm, 'seconds')) {
     pauseDisplay = true
     alarmDismissed = false
     soundAlarm()
@@ -113,14 +113,14 @@ function tick () {
 
 function soundAlarm () {
   piezo.play('C -', () => { // callback is fired after every alarm 'beep'
-    if (!alarmDismissed && alarmTime.isSameOrBefore(moment())) {
+    if (!alarmDismissed && nextAlarm.isSameOrBefore(moment())) {
       soundAlarm()
       return
     } else if (!alarmDismissed) {
       console.log('Alarm snoozed')
     } else {
       console.log('Alarm dismissed')
-      alarmTime.add(1, 'day').set({ seconds: 0 })
+      nextAlarm.add(1, 'day').set({ seconds: 0 })
     }
     previousAlarm = moment()
     pauseDisplay = false
@@ -134,7 +134,7 @@ board.on('ready', () => {
   board.repl.inject({
     // Easily set an alarm from terminal (defaults to five seconds from now, or pass an argument)
     a (when = moment().add(5, 'seconds')) {
-      alarmTime = when
+      nextAlarm = when
     }
   })
 })
