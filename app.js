@@ -8,6 +8,7 @@ let alarmOn = true
 let alarmDismissed = true
 let pauseDisplay = false
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
+let previousAlarm = moment(0) // used to keep it sunny after alarm
 
 function setupHardware () {
   upButton = new five.Button({ pin: 2, holdtime: 250 })
@@ -27,7 +28,7 @@ function setupHardware () {
   // tap mode button to turn off currently playing alarm
   modeButton.on('down', () => { alarmDismissed = true })
 
-  // hold mode button to toggle alarm on/off
+  // hold mode button to toggle upcoming alarm on/off
   modeButton.on('hold', () => {
     alarmOn = !alarmOn
     console.log(`Alarm is now ${alarmOn ? 'on' : 'off'}`)
@@ -96,12 +97,11 @@ function tick () {
 
   alarmOn ? infoLed.on() : infoLed.off()
 
-  /* Gradually get brighter from 30 mins before alarm.
-     Could have used fadeIn() here, but it's messy if user sets
-     the alarm for <30 mins from now. This way is more robust. */
+  // Gradually get brighter/dimmer 30 mins before/after alarm
   const minsLeft = alarmTime.diff(moment(), 'minutes')
-  if (alarmOn && minsLeft < 30) {
-    const sunlight = Math.round(((30 - minsLeft) / 30) * 255)
+  const minsSince = moment().diff(previousAlarm, 'minutes')
+  if (minsSince < 30 || (alarmOn && minsLeft < 30)) {
+    const sunlight = !alarmDismissed ? 255 : Math.round(((30 - Math.min(minsLeft, minsSince)) / 30) * 255)
     sunriseLed.brightness(sunlight)
     console.log(`Sunlight: ${sunlight}/255`)
   }
@@ -114,20 +114,17 @@ function tick () {
 }
 
 function soundAlarm () {
-  piezo.play('C -', () => {
+  piezo.play('C -', () => { // callback is fired after every alarm 'beep'
     if (!alarmDismissed && alarmTime.isSameOrBefore(moment())) {
       soundAlarm()
     } else if (!alarmDismissed) { // user hit snooze
       pauseDisplay = false
     } else { // user dismissed alarm
-      console.log('Alarm stopped')
+      console.log('Alarm dismissed')
       alarmTime.add(1, 'day').set({ seconds: 0 })
       pauseDisplay = false
-      // Keep it sunny for 10 mins, then fade it out over 30 mins (currently 1 min for testing)
-      setTimeout(() => {
-        sunriseLed.fadeOut(1000/* ms */ * 60/* secs */ /* 30/* mins */)
-      }, 1000/* ms */ * 60/* secs */ /* 10/* mins */)
     }
+    previousAlarm = moment()
   })
 }
 
