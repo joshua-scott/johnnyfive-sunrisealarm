@@ -64,17 +64,25 @@ function setAlarm (direction, amount) {
 function showStatus () {
   if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
+  const now = moment()
   let alarmMessage = 'No alarm'
 
   if (alarmOn) {
-    const minsLeft = alarmTime.diff(moment(), 'minutes')
-    alarmMessage = (minsLeft < 100) ? `${minsLeft} mins` : `${Math.round(minsLeft / 60)} hours`
-    alarmMessage = (minsLeft < 2) ? `${alarmTime.diff(moment(), 'seconds')} secs` : alarmMessage
+    const hoursLeft = alarmTime.diff(now, 'hours')
+    const minsLeft = alarmTime.diff(now, 'minutes')
+    const secsLeft = alarmTime.diff(now, 'seconds')
+    if (hoursLeft > 0) {
+      alarmMessage = `${hoursLeft}h ${minsLeft % 60}m`
+    } else if (minsLeft > 0) {
+      alarmMessage = `${minsLeft}m ${secsLeft % 60}s`
+    } else {
+      alarmMessage = `${secsLeft}s`
+    }
   }
 
-  lcd.home().print(`:clock: ${moment().format('HH:mm:ss')}`)
+  lcd.home().print(`:clock: ${now.format('HH:mm:ss')}`)
   lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm')} ${alarmMessage.padStart(8)}`)
-  console.log(`Now: ${moment().format('HH:mm:ss')}\tAlarm: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
+  console.log(`Now: ${now.format('HH:mm:ss')}\tAlarm: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
 }
 
 function tick () {
