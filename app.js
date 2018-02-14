@@ -19,8 +19,8 @@ function setupHardware () {
     rows: 2,
     cols: 20
   });
-  lcd.useChar("clock");
-  lcd.useChar("bell");
+  lcd.useChar('clock');
+  lcd.useChar('bell');
   
   // tap mode button to turn off currently playing alarm
   modeButton.on('down', () => keepPlaying = false)
