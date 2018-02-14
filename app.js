@@ -2,6 +2,7 @@ const five = require('johnny-five')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
+let displayOn = true
 let alarmOn = true
 let keepPlaying = true
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
@@ -59,6 +60,10 @@ function setAlarm (direction, amount) {
 }
 
 function showStatus () {
+  if (!displayOn) return
+
+  lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`);
+  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm:ss')}`);
   console.log(`Current time: ${moment().format('HH:mm:ss')}\tAlarm time: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
 }
 
@@ -79,6 +84,7 @@ function tick () {
   
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
+    displayOn = false
     soundAlarm()
     alarmTime.add(1, 'day').set({seconds: 0})
   }
@@ -88,10 +94,12 @@ function soundAlarm () {
   piezo.play('C -', () => {
     if (keepPlaying) {
       console.log('BEEP')
+      showStatus()
       soundAlarm()
     } else {
       console.log('Alarm stopped')
-      // Keep it sunny for 10 mins, then fade it out over 30 mins
+      displayOn = true
+      // Keep it sunny for 10 mins, then fade it out over 30 mins (currently 1 min for testing)
       setTimeout(() => {
         sunriseLed.fadeOut(1000/*ms*/ * 60/*secs*/ /* 30/*mins*/)
       }, 1000/*ms*/ * 60/*secs*/ /* 10/*mins*/)
@@ -103,10 +111,6 @@ board.on('ready', () => {
   setupHardware()
   setInterval(tick, 1000)
 
-  // example lcd usage:
-  lcd.clear().print(':clock: 12:00  13:00 :bell:');
-  lcd.cursor(1, 0).print('   in an hour   ');
-
   board.repl.inject({
     // Easily set an alarm from terminal (defaults to five seconds from now, or pass an argument)
     a (when = moment().add(5, 'seconds')) {
@@ -117,7 +121,6 @@ board.on('ready', () => {
 
 /*
 todo:
-- Show info on LCD display, not only console
 - Allow user to change alarm hour too (perhaps by tapping mode button: if there's not an alarm playing,
   we know the user wants to change the minutes/hour). Possibly flash the currentlyEditing units until a timeout?
 - When alarm is sounding, consider: tap to snooze, hold to dismiss? Or use the arrow buttons? Could use the
