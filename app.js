@@ -2,7 +2,7 @@ const five = require('johnny-five')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
-let upButton, downButton, modeButton, sunriseLed, infoLed, piezo, lcd
+let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
 
 let alarmOn = true
 let keepPlaying = true
@@ -13,8 +13,8 @@ function setupHardware () {
   upButton = new five.Button({ pin: 2, holdtime: 250 })
   downButton = new five.Button({ pin: 3, holdtime: 250 })
   modeButton = new five.Button({ pin: 4, holdtime: 500 })
-  sunriseLed = new five.Led(5)
-  infoLed = new five.Led(6)
+  infoLed = new five.Led(5)
+  sunriseLed = new five.Led(6)
   piezo = new five.Piezo(7)
   lcd = new five.LCD({
     pins: [8, 9, 10, 11, 12, 13],
