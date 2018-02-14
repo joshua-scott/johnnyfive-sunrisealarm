@@ -52,15 +52,7 @@ function setAlarm (button, amount) {
     nextAlarm.add(button === 'up' ? amount : -amount, 'minutes')
   }
 
-  // adjust date of alarm if needed
-  const now = moment()
-  if (nextAlarm.isBefore(now)) {
-    nextAlarm.add(1, 'day')
-  } else if (nextAlarm.isAfter(now.add(1, 'day'))) {
-    nextAlarm.subtract(1, 'day')
-  }
-
-  updateDisplay()
+  tick() // force immediate update
 }
 
 function updateDisplay () {
@@ -90,7 +82,17 @@ function updateDisplay () {
   console.log(topRow, '|', bottomRow)
 }
 
+function checkAlarmDate () {
+  const now = moment()
+  if (nextAlarm.isBefore(now)) {
+    nextAlarm.add(1, 'day')
+  } else if (nextAlarm.isAfter(now.add(1, 'day'))) {
+    nextAlarm.subtract(1, 'day')
+  }
+}
+
 function tick () {
+  checkAlarmDate()
   updateDisplay()
 
   alarmOn ? infoLed.on() : infoLed.off()
@@ -102,6 +104,8 @@ function tick () {
     const sunlight = !alarmDismissed ? 255 : Math.round(((30 - Math.min(minsLeft, minsSince)) / 30) * 255)
     sunriseLed.brightness(sunlight)
     console.log(`Sunlight: ${sunlight}/255`)
+  } else {
+    sunriseLed.off()
   }
 
   if (alarmOn && moment().isSame(nextAlarm, 'seconds')) {
@@ -144,4 +148,5 @@ todo:
 - When alarm is not sounding:
   - tapping modeButton should swap between showing day/date/hourChange/minChange
   - holding up/down button outside of changeTime mode could activate 'secrets'. e.g. strobe mode? a game?? Just an idea...
+- Write readme (include fritzing diagram)
 */
