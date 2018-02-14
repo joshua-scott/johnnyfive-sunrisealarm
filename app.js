@@ -3,12 +3,11 @@ const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
 let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
-
 let alarmOn = true
 let alarmDismissed = true
-let pauseDisplay = false
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 let previousAlarm = moment(0) // used to keep it sunny after alarm
+let pauseDisplay = false
 
 function setupHardware () {
   upButton = new five.Button({ pin: 2, holdtime: 250 })
@@ -49,7 +48,6 @@ function setAlarm (button, amount) {
   if (!alarmDismissed) { // snooze currently playing alarm
     const snoozeTime = button === 'up' ? 1 : 10
     alarmTime.add(snoozeTime, 'minutes')
-    console.log(`Alarm snoozed for ${snoozeTime} minutes`)
   } else { // adjust future alarm
     alarmTime.add(button === 'up' ? amount : -amount, 'minutes')
   }
@@ -117,14 +115,15 @@ function soundAlarm () {
   piezo.play('C -', () => { // callback is fired after every alarm 'beep'
     if (!alarmDismissed && alarmTime.isSameOrBefore(moment())) {
       soundAlarm()
-    } else if (!alarmDismissed) { // user hit snooze
-      pauseDisplay = false
-    } else { // user dismissed alarm
+      return
+    } else if (!alarmDismissed) {
+      console.log('Alarm snoozed')
+    } else {
       console.log('Alarm dismissed')
       alarmTime.add(1, 'day').set({ seconds: 0 })
-      pauseDisplay = false
     }
     previousAlarm = moment()
+    pauseDisplay = false
   })
 }
 
