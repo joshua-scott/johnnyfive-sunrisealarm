@@ -5,7 +5,7 @@ const board = new five.Board({ port: 'COM3' })
 let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
 
 let alarmOn = true
-let keepPlaying = true
+let alarmDismissed = true
 let pauseDisplay = false
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 
@@ -25,7 +25,7 @@ function setupHardware () {
   lcd.useChar('bell')
 
   // tap mode button to turn off currently playing alarm
-  modeButton.on('down', () => { keepPlaying = false })
+  modeButton.on('down', () => { alarmDismissed = true })
 
   // hold mode button to toggle alarm on/off
   modeButton.on('hold', () => {
@@ -33,21 +33,24 @@ function setupHardware () {
     console.log(`Alarm is now ${alarmOn ? 'on' : 'off'}`)
   })
 
-  // tapping up or down button changes alarm time by 1 minute
+  // if alarm is playing, snooze by 1 min (up button) or 10 mins (down button)
+  // else tapping up or down button changes alarm time by 1 minute
   // holding changes alarm time by 10 mins (per 250ms)
-  downButton.on('down', () => setAlarm('down', 1))
-  downButton.on('hold', () => setAlarm('down', 10))
   upButton.on('down', () => setAlarm('up', 1))
   upButton.on('hold', () => setAlarm('up', 10))
+  downButton.on('down', () => setAlarm('down', 1))
+  downButton.on('hold', () => setAlarm('down', 10))
 
   console.log('Ready!')
 }
 
-function setAlarm (direction, amount) {
-  if (direction === 'up') {
-    alarmTime.add(amount, 'minutes')
-  } else {
-    alarmTime.subtract(amount, 'minutes')
+function setAlarm (button, amount) {
+  if (!alarmDismissed) { // snooze currently playing alarm
+    const snoozeTime = button === 'up' ? 1 : 10
+    alarmTime.add(snoozeTime, 'minutes')
+    console.log(`Alarm snoozed for ${snoozeTime} minutes`)
+  } else { // adjust future alarm
+    alarmTime.add(button === 'up' ? amount : -amount, 'minutes')
   }
 
   // adjust date of alarm if needed
@@ -104,19 +107,21 @@ function tick () {
   }
 
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
-    keepPlaying = true
     pauseDisplay = true
+    alarmDismissed = false
     soundAlarm()
-    alarmTime.add(1, 'day').set({seconds: 0})
   }
 }
 
 function soundAlarm () {
   piezo.play('C -', () => {
-    if (keepPlaying) {
+    if (!alarmDismissed && alarmTime.isSameOrBefore(moment())) {
       soundAlarm()
-    } else {
+    } else if (!alarmDismissed) { // user hit snooze
+      pauseDisplay = false
+    } else { // user dismissed alarm
       console.log('Alarm stopped')
+      alarmTime.add(1, 'day').set({ seconds: 0 })
       pauseDisplay = false
       // Keep it sunny for 10 mins, then fade it out over 30 mins (currently 1 min for testing)
       setTimeout(() => {
@@ -140,8 +145,7 @@ board.on('ready', () => {
 
 /*
 todo:
-- Allow user to change alarm hour too (perhaps by tapping mode button: if there's not an alarm playing,
-  we know the user wants to change the minutes/hour). Possibly flash the currentlyEditing units until a timeout?
-- When alarm is sounding, consider: tap to snooze, hold to dismiss? Or use the arrow buttons? Could use the
-  display as a key, if there's room
+- When alarm is not sounding:
+  - tapping modeButton should swap between showing day/date/hourChange/minChange
+  - holding up/down button outside of changeTime mode could activate 'secrets'. e.g. strobe mode? a game?? Just an idea...
 */
