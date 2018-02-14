@@ -58,10 +58,10 @@ function setAlarm (direction, amount) {
     alarmTime.subtract(1, 'day')
   }
 
-  showStatus()
+  updateDisplay()
 }
 
-function showStatus () {
+function updateDisplay () {
   if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
   const now = moment()
@@ -89,7 +89,7 @@ function showStatus () {
 }
 
 function tick () {
-  showStatus()
+  updateDisplay()
 
   alarmOn ? infoLed.on() : infoLed.off()
 
