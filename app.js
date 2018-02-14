@@ -72,9 +72,9 @@ function showStatus () {
     alarmMessage = (minsLeft < 2) ? `${alarmTime.diff(moment(), 'seconds')} secs` : alarmMessage
   }
 
-  lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`)
-  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm')} ${alarmMessage}`)
-  console.log(`Current time: ${moment().format('HH:mm:ss')}\tAlarm time: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
+  lcd.home().print(`:clock: ${moment().format('HH:mm:ss')}`)
+  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm')} ${alarmMessage.padStart(8)}`)
+  console.log(`Now: ${moment().format('HH:mm:ss')}\tAlarm: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
 }
 
 function tick () {
