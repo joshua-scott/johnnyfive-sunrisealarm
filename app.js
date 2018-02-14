@@ -2,9 +2,9 @@ const five = require('johnny-five')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
-let displayOn = true
 let alarmOn = true
 let keepPlaying = true
+let pauseDisplay = false
 let alarmTime = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
 
 function setupHardware () {
@@ -60,7 +60,7 @@ function setAlarm (direction, amount) {
 }
 
 function showStatus () {
-  if (!displayOn) return
+  if (pauseDisplay) return  // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
   lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`);
   lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm:ss')}`);
@@ -84,7 +84,7 @@ function tick () {
   
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
-    displayOn = false
+    pauseDisplay = true
     soundAlarm()
     alarmTime.add(1, 'day').set({seconds: 0})
   }
@@ -98,7 +98,7 @@ function soundAlarm () {
       soundAlarm()
     } else {
       console.log('Alarm stopped')
-      displayOn = true
+      pauseDisplay = false
       // Keep it sunny for 10 mins, then fade it out over 30 mins (currently 1 min for testing)
       setTimeout(() => {
         sunriseLed.fadeOut(1000/*ms*/ * 60/*secs*/ /* 30/*mins*/)
