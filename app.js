@@ -2,6 +2,8 @@ const five = require('johnny-five')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
+let upButton, downButton, modeButton, sunriseLed, infoLed, piezo, lcd
+
 let alarmOn = true
 let keepPlaying = true
 let pauseDisplay = false
@@ -18,13 +20,13 @@ function setupHardware () {
     pins: [8, 9, 10, 11, 12, 13],
     rows: 2,
     cols: 20
-  });
-  lcd.useChar('clock');
-  lcd.useChar('bell');
-  
+  })
+  lcd.useChar('clock')
+  lcd.useChar('bell')
+
   // tap mode button to turn off currently playing alarm
-  modeButton.on('down', () => keepPlaying = false)
-  
+  modeButton.on('down', () => { keepPlaying = false })
+
   // hold mode button to toggle alarm on/off
   modeButton.on('hold', () => {
     alarmOn = !alarmOn
@@ -37,7 +39,7 @@ function setupHardware () {
   downButton.on('hold', () => setAlarm('down', 10))
   upButton.on('down', () => setAlarm('up', 1))
   upButton.on('hold', () => setAlarm('up', 10))
-  
+
   console.log('Ready!')
 }
 
@@ -60,10 +62,10 @@ function setAlarm (direction, amount) {
 }
 
 function showStatus () {
-  if (pauseDisplay) return  // using piezo + display together uses too much power and causes issues, so pause updates during alarm
+  if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
 
-  lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`);
-  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm:ss')}`);
+  lcd.clear().print(`:clock: ${moment().format('HH:mm:ss')}`)
+  lcd.cursor(1, 0).print(`:bell: ${alarmTime.format('HH:mm:ss')}`)
   console.log(`Current time: ${moment().format('HH:mm:ss')}\tAlarm time: ${alarmTime.format('HH:mm:ss')} (${alarmTime.fromNow()})\talarmOn: ${alarmOn}`)
 }
 
@@ -81,7 +83,7 @@ function tick () {
     sunriseLed.brightness(sunlight)
     console.log(`Sunlight: ${sunlight}/255`)
   }
-  
+
   if (alarmOn && moment().isSame(alarmTime, 'seconds')) {
     keepPlaying = true
     pauseDisplay = true
@@ -101,8 +103,8 @@ function soundAlarm () {
       pauseDisplay = false
       // Keep it sunny for 10 mins, then fade it out over 30 mins (currently 1 min for testing)
       setTimeout(() => {
-        sunriseLed.fadeOut(1000/*ms*/ * 60/*secs*/ /* 30/*mins*/)
-      }, 1000/*ms*/ * 60/*secs*/ /* 10/*mins*/)
+        sunriseLed.fadeOut(1000/* ms */ * 60/* secs */ /* 30/* mins */)
+      }, 1000/* ms */ * 60/* secs */ /* 10/* mins */)
     }
   })
 }
