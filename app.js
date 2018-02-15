@@ -2,6 +2,9 @@ const five = require('johnny-five')
 const moment = require('moment')
 const board = new five.Board({ port: 'COM3' })
 
+const shortSnooze = 5
+const longSnooze = 25
+
 let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
 let alarmOn = true
 let alarmDismissed = true
@@ -46,8 +49,7 @@ function setupHardware () {
 
 function setAlarm (button, amount) {
   if (!alarmDismissed) { // snooze currently playing alarm
-    const snoozeTime = button === 'up' ? 1 : 10
-    nextAlarm.add(snoozeTime, 'minutes')
+    nextAlarm.add(button === 'up' ? shortSnooze : longSnooze, 'minutes')
   } else { // adjust future alarm
     nextAlarm.add(button === 'up' ? amount : -amount, 'minutes')
   }
