@@ -100,8 +100,8 @@ function tick () {
   alarmOn ? infoLed.on() : infoLed.off()
 
   // Gradually get brighter/dimmer 30 mins before/after alarm
-  const minsLeft = nextAlarm.diff(moment(), 'minutes')
   const minsSince = moment().diff(previousAlarm, 'minutes')
+  const minsLeft = nextAlarm.diff(moment(), 'minutes')
   if (minsSince < 30 || (alarmOn && minsLeft < 30)) {
     const sunlight = !alarmDismissed ? 255 : Math.round(((30 - Math.min(minsLeft, minsSince)) / 30) * 255)
     sunriseLed.brightness(sunlight)
@@ -138,17 +138,9 @@ board.on('ready', () => {
   setInterval(tick, 1000)
 
   board.repl.inject({
-    // Easily set an alarm from terminal (defaults to five seconds from now, or pass an argument)
-    a (when = moment().add(5, 'seconds')) {
-      nextAlarm = when
+    // Easily set an alarm from terminal
+    a (amount = 5, units = 'seconds') {
+      nextAlarm = moment().add(amount, units)
     }
   })
 })
-
-/*
-todo:
-- When alarm is not sounding:
-  - tapping modeButton should swap between showing day/date/hourChange/minChange
-  - holding up/down button outside of changeTime mode could activate 'secrets'. e.g. strobe mode? a game?? Just an idea...
-- Write readme (include fritzing diagram)
-*/
