@@ -8,8 +8,8 @@ const longSnooze = 25
 let upButton, downButton, modeButton, infoLed, sunriseLed, piezo, lcd
 let alarmOn = true
 let alarmDismissed = true
-let nextAlarm = moment().add(1, 'hour').set({seconds: 0}) // alarm defaults to 1 hour from now
-let previousAlarm = moment(0) // used to keep it sunny after alarm
+let nextAlarm = moment().add(1, 'hour').set({seconds: 0})
+let previousAlarm = moment(0)
 let pauseDisplay = false
 
 function setupHardware () {
@@ -27,7 +27,7 @@ function setupHardware () {
   lcd.useChar('clock')
   lcd.useChar('bell')
 
-  // tap mode button to turn off currently playing alarm
+  // tap mode button to turn off ringing alarm
   modeButton.on('down', () => { alarmDismissed = true })
 
   // hold mode button to toggle upcoming alarm on/off
@@ -36,9 +36,7 @@ function setupHardware () {
     console.log(`Alarm is now ${alarmOn ? 'on' : 'off'}`)
   })
 
-  // if alarm is playing, snooze by 1 min (up button) or 10 mins (down button)
-  // else tapping up or down button changes alarm time by 1 minute
-  // holding changes alarm time by 10 mins (per 250ms)
+  // arrow buttons snooze ringing alarm, or adjust time of upcoming alarm
   upButton.on('down', () => setAlarm('up', 1))
   upButton.on('hold', () => setAlarm('up', 10))
   downButton.on('down', () => setAlarm('down', 1))
@@ -48,17 +46,18 @@ function setupHardware () {
 }
 
 function setAlarm (button, amount) {
-  if (!alarmDismissed) { // snooze currently playing alarm
+  if (!alarmDismissed) {
     nextAlarm.add(button === 'up' ? shortSnooze : longSnooze, 'minutes')
-  } else { // adjust future alarm
+  } else {
     nextAlarm.add(button === 'up' ? amount : -amount, 'minutes')
   }
 
-  tick() // force immediate update
+  tick()
 }
 
 function updateDisplay () {
-  if (pauseDisplay) return // using piezo + display together uses too much power and causes issues, so pause updates during alarm
+  // using piezo + display together uses too much power and causes issues
+  if (pauseDisplay) return
 
   const now = moment()
 
@@ -85,7 +84,8 @@ function updateDisplay () {
 }
 
 function checkAlarmDate () {
-  if (!alarmDismissed) return // don't change the alarm if it's currently ringing
+  // don't change the alarm if it's currently ringing
+  if (!alarmDismissed) return
 
   const now = moment()
   if (nextAlarm.isBefore(now)) {
@@ -101,9 +101,10 @@ function tick () {
 
   alarmOn ? infoLed.on() : infoLed.off()
 
-  // Gradually get brighter/dimmer 30 mins before/after alarm
+  // gradually get brighter/dimmer 30 mins before/after alarm
   const minsSince = moment().diff(previousAlarm, 'minutes')
   const minsLeft = nextAlarm.diff(moment(), 'minutes')
+
   if (minsSince < 30 || (alarmOn && minsLeft < 30)) {
     const sunlight = !alarmDismissed ? 255 : Math.round(((30 - Math.min(minsLeft, minsSince)) / 30) * 255)
     sunriseLed.brightness(sunlight)
@@ -120,7 +121,8 @@ function tick () {
 }
 
 function soundAlarm () {
-  piezo.play('C -', () => { // callback is fired after every alarm 'beep'
+  // beep once, then fire callback function
+  piezo.play('C -', () => {
     if (!alarmDismissed && nextAlarm.isSameOrBefore(moment())) {
       soundAlarm()
       return
@@ -140,7 +142,7 @@ board.on('ready', () => {
   setInterval(tick, 1000)
 
   board.repl.inject({
-    // Easily set an alarm from terminal
+    // quickly set an alarm from terminal
     a (amount = 5, units = 'seconds') {
       nextAlarm = moment().add(amount, units)
     }
